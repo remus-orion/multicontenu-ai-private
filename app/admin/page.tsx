@@ -104,9 +104,8 @@ export default async function AdminPage() {
                     Pro
                   </button>
                 </form>
-                <form action="/api/admin/delete-user" method="POST" 
-                  onSubmit={(e) => { if (!confirm("Supprimer cet utilisateur ?")) e.preventDefault(); }}>
-                  <input type="hidden" name="userId" value={item.id} />
+                <form action="/api/admin/delete-user" method="POST">
+                  <input type="hidden"name="userId" value={item.id} />
                   <button type="submit" style={{ 
                     fontSize: 12, padding: "6px 12px", 
                     background: "#dc2626", color: "white",
