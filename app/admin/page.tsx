@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { emailIsAdmin, getProfile, requireUser } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -40,11 +41,36 @@ export default async function AdminPage() {
       <p className="subtitle">Vue serveur uniquement. Données sensibles via service role.</p>
 
       <section className="grid">
-        <article className="card kpi"><span className="label">Utilisateurs</span><strong>{profiles.count ?? 0}</strong></article>
-        <article className="card kpi"><span className="label">Projets</span><strong>{projects.count ?? 0}</strong></article>
-        <article className="card kpi"><span className="label">Générations</span><strong>{generations.count ?? 0}</strong></article>
-        <article className="card kpi"><span className="label">Abonnements actifs</span><strong>{subscriptions.count ?? 0}</strong></article>
-        <article className="card kpi"><span className="label">Blocages anti-spam</span><strong>{blockedGenerations.count ?? 0}</strong></article>
+        <Link href="/admin/users" style={{ textDecoration: "none" }}>
+          <article className="card kpi" style={{ cursor: "pointer" }}>
+            <span className="label">Utilisateurs</span>
+            <strong>{profiles.count ?? 0}</strong>
+          </article>
+        </Link>
+        <Link href="/admin/projects" style={{ textDecoration: "none" }}>
+          <article className="card kpi" style={{ cursor: "pointer" }}>
+            <span className="label">Projets</span>
+            <strong>{projects.count ?? 0}</strong>
+          </article>
+        </Link>
+        <Link href="/admin/generations" style={{ textDecoration: "none" }}>
+          <article className="card kpi" style={{ cursor: "pointer" }}>
+            <span className="label">Générations</span>
+            <strong>{generations.count ?? 0}</strong>
+          </article>
+        </Link>
+        <Link href="/admin/subscriptions" style={{ textDecoration: "none" }}>
+          <article className="card kpi" style={{ cursor: "pointer" }}>
+            <span className="label">Abonnements actifs</span>
+            <strong>{subscriptions.count ?? 0}</strong>
+          </article>
+        </Link>
+        <Link href="/admin/security" style={{ textDecoration: "none" }}>
+          <article className="card kpi" style={{ cursor: "pointer" }}>
+            <span className="label">Blocages anti-spam</span>
+            <strong>{blockedGenerations.count ?? 0}</strong>
+          </article>
+        </Link>
       </section>
 
       <section className="card" style={{ marginTop: 18 }}>
@@ -64,8 +90,8 @@ export default async function AdminPage() {
                 <strong>{item.email || "Email inconnu"}</strong>
                 <br />
                 <span style={{ fontSize: 13, color: "var(--muted)" }}>
-                  Plan <strong style={{ color: item.plan === "vip" ? "gold" : "inherit" }}>{item.plan?.toUpperCase()}</strong> 
-                  {" "}• crédits {item.credits_remaining} 
+                  Plan <strong style={{ color: item.plan === "vip" ? "gold" : "inherit" }}>{item.plan?.toUpperCase()}</strong>
+                  {" "}• crédits {item.credits_remaining}
                   {" "}• {new Date(item.created_at).toLocaleString("fr-FR")}
                 </span>
               </div>
@@ -73,44 +99,27 @@ export default async function AdminPage() {
                 <form action="/api/admin/set-plan" method="POST">
                   <input type="hidden" name="userId" value={item.id} />
                   <input type="hidden" name="plan" value="vip" />
-                  <button type="submit" style={{ 
-                    fontSize: 12, padding: "6px 12px", 
-                    background: "gold", color: "black", 
-                    border: "none", borderRadius: 8, cursor: "pointer",
-                    fontWeight: "bold"
-                  }}>
+                  <button type="submit" style={{ fontSize: 12, padding: "6px 12px", background: "gold", color: "black", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: "bold" }}>
                     👑 VIP
                   </button>
                 </form>
                 <form action="/api/admin/set-plan" method="POST">
                   <input type="hidden" name="userId" value={item.id} />
                   <input type="hidden" name="plan" value="free" />
-                  <button type="submit" style={{ 
-                    fontSize: 12, padding: "6px 12px", 
-                    background: "#666", color: "white",
-                    border: "none", borderRadius: 8, cursor: "pointer"
-                  }}>
+                  <button type="submit" style={{ fontSize: 12, padding: "6px 12px", background: "#666", color: "white", border: "none", borderRadius: 8, cursor: "pointer" }}>
                     Free
                   </button>
                 </form>
                 <form action="/api/admin/set-plan" method="POST">
                   <input type="hidden" name="userId" value={item.id} />
                   <input type="hidden" name="plan" value="pro" />
-                  <button type="submit" style={{ 
-                    fontSize: 12, padding: "6px 12px", 
-                    background: "#4f46e5", color: "white",
-                    border: "none", borderRadius: 8, cursor: "pointer"
-                  }}>
+                  <button type="submit" style={{ fontSize: 12, padding: "6px 12px", background: "#4f46e5", color: "white", border: "none", borderRadius: 8, cursor: "pointer" }}>
                     Pro
                   </button>
                 </form>
                 <form action="/api/admin/delete-user" method="POST">
-                  <input type="hidden"name="userId" value={item.id} />
-                  <button type="submit" style={{ 
-                    fontSize: 12, padding: "6px 12px", 
-                    background: "#dc2626", color: "white",
-                    border: "none", borderRadius: 8, cursor: "pointer"
-                  }}>
+                  <input type="hidden" name="userId" value={item.id} />
+                  <button type="submit" style={{ fontSize: 12, padding: "6px 12px", background: "#dc2626", color: "white", border: "none", borderRadius: 8, cursor: "pointer" }}>
                     🗑️ Supprimer
                   </button>
                 </form>
