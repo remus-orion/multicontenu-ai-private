@@ -1,8 +1,16 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { emailIsAdmin, getProfile, requireUser } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export default async function AdminPage() {
+  // Vérification mot de passe admin
+  const cookieStore = await cookies();
+  const adminAuth = cookieStore.get("admin_auth");
+  if (!adminAuth || adminAuth.value !== "true") {
+    redirect("/admin/auth");
+  }
+
   const user = await requireUser();
   const profile = await getProfile(user.id);
 
@@ -22,7 +30,7 @@ export default async function AdminPage() {
 
   const { data: latestUsers } = await supabaseAdmin
     .from("profiles")
-    .select("email,plan,credits_remaining,created_at")
+    .select("id,email,plan,credits_remaining,created_at")
     .order("created_at", { ascending: false })
     .limit(10);
 
@@ -34,9 +42,9 @@ export default async function AdminPage() {
 
   return (
     <main className="page">
-      <span className="badge">Admin panel</span>
+      <span className="badge">🔐 Admin panel</span>
       <h1 className="title" style={{ fontSize: "3.4rem" }}>Pilotage</h1>
-      <p className="subtitle">Vue serveur uniquement. Les données sensibles passent par la service role côté serveur, jamais côté navigateur.</p>
+      <p className="subtitle">Vue serveur uniquement. Données sensibles via service role.</p>
 
       <section className="grid">
         <article className="card kpi"><span className="label">Utilisateurs</span><strong>{profiles.count ?? 0}</strong></article>
@@ -50,10 +58,28 @@ export default async function AdminPage() {
         <h2>Derniers utilisateurs</h2>
         <div style={{ display: "grid", gap: 10 }}>
           {latestUsers?.map((item) => (
-            <div className="notice" key={item.email || item.created_at}>
-              <strong>{item.email || "Email inconnu"}</strong>
-              <br />
-              <span>Plan {item.plan} • crédits {item.credits_remaining} • {new Date(item.created_at).toLocaleString("fr-FR")}</span>
+            <div className="notice" key={item.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <strong>{item.email || "Email inconnu"}</strong>
+                <br />
+                <span>Plan <strong>{item.plan}</strong> • crédits {item.credits_remaining} • {new Date(item.created_at).toLocaleString("fr-FR")}</span>
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <form action={`/api/admin/set-plan`} method="POST">
+                  <input type="hidden" name="userId" value={item.id} />
+                  <input type="hidden" name="plan" value="vip" />
+                  <button className="btn" type="submit" style={{ fontSize: 12, padding: "6px 12px", background: "gold", color: "black" }}>
+                    👑 VIP
+                  </button>
+                </form>
+                <form action={`/api/admin/set-plan`} method="POST">
+                  <input type="hidden" name="userId" value={item.id} />
+                  <input type="hidden" name="plan" value="free" />
+                  <button className="btn" type="submit" style={{ fontSize: 12, padding: "6px 12px", background: "#666" }}>
+                    Free
+                  </button>
+                </form>
+              </div>
             </div>
           ))}
         </div>
