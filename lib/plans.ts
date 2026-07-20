@@ -1,7 +1,7 @@
 export const PLATFORM_OPTIONS = ["linkedin", "twitter", "instagram", "tiktok", "newsletter"] as const;
 export type Platform = (typeof PLATFORM_OPTIONS)[number];
 
-export const PLAN_OPTIONS = ["free", "pro", "enterprise"] as const;
+export const PLAN_OPTIONS = ["free", "pro", "enterprise", "vip", "starter", "business"] as const;
 export type Plan = (typeof PLAN_OPTIONS)[number];
 
 export const PLATFORM_LABELS: Record<Platform, string> = {
@@ -23,5 +23,5 @@ export function isPlan(value: string | null | undefined): value is Plan {
 }
 
 export function planAllowsUnlimited(plan: string | null | undefined) {
-  return plan === "pro" || plan === "enterprise";
+  return plan === "pro" || plan === "enterprise" || plan === "vip" || plan === "starter" || plan === "business";
 }
