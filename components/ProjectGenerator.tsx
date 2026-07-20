@@ -13,6 +13,37 @@ type QuotaResult = {
   daily_limit: number | null;
 };
 
+function CopyButton({ content }: { content: string }) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    await navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <button
+      onClick={handleCopy}
+      type="button"
+      style={{
+        marginTop: 8,
+        fontSize: 12,
+        padding: "6px 14px",
+        background: copied ? "#22c55e" : "var(--accent)",
+        color: "white",
+        border: "none",
+        borderRadius: 8,
+        cursor: "pointer",
+        fontWeight: "bold",
+        transition: "background 0.2s"
+      }}
+    >
+      {copied ? "✅ Copié !" : "📋 Copier"}
+    </button>
+  );
+}
+
 export default function ProjectGenerator() {
   const [title, setTitle] = useState("");
   const [sourceContent, setSourceContent] = useState("");
@@ -45,14 +76,8 @@ export default function ProjectGenerator() {
     try {
       const response = await fetch("/api/generate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          title,
-          source_content: sourceContent,
-          platforms
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, source_content: sourceContent, platforms })
       });
 
       const payload = await response.json();
@@ -137,7 +162,10 @@ export default function ProjectGenerator() {
             <article key={item.platform}>
               <span className="badge">{PLATFORM_LABELS[item.platform]}</span>
               {item.content ? (
-                <pre className="output">{item.content}</pre>
+                <>
+                  <pre className="output">{item.content}</pre>
+                  <CopyButton content={item.content} />
+                </>
               ) : (
                 <p className="notice error" style={{ marginTop: 10 }}>
                   Échec de la génération pour cette plateforme. Réessaie.
