@@ -15,6 +15,7 @@ export default async function Header() {
         {user ? (
           <>
             <Link href="/dashboard">Dashboard</Link>
+            <Link href="/projects">Projets</Link>
             <Link href="/account">Compte</Link>
             <Link href="/settings">Settings</Link>
             <SignOutButton />
