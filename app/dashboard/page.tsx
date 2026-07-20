@@ -1,12 +1,19 @@
 import Link from "next/link";
 import ProjectGenerator from "@/components/ProjectGenerator";
-import { getProfile, requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const user = await requireUser();
-  const profile = await getProfile(user.id);
   const supabase = await createSupabaseServerClient();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("credits_remaining")
+    .eq("id", user.id)
+    .single();
 
   const { data: projects } = await supabase
     .from("projects")
@@ -21,9 +28,9 @@ export default async function DashboardPage() {
         <div>
           <span className="badge">Dashboard</span>
           <h1 className="title" style={{ fontSize: "3.4rem" }}>Création multi-contenu</h1>
-          <p className="subtitle">Plan : {profile?.plan || "free"} • Crédits : {profile?.credits_remaining ?? 0}</p>
+          <p className="subtitle">Jetons restants : <strong style={{ color: "#a78bfa" }}>{profile?.credits_remaining ?? 0}</strong></p>
         </div>
-        <Link className="btn secondary" href="/pricing">Améliorer le plan</Link>
+        <Link className="btn secondary" href="/pricing">Acheter des jetons</Link>
       </div>
 
       <ProjectGenerator />
