@@ -6,8 +6,20 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
-export async function POST() {
+const PLAN_CONFIG = {
+  starter: { priceEnv: "STRIPE_PRICE_STARTER", credits: 20 },
+  pro: { priceEnv: "STRIPE_PRICE_PRO", credits: 50 },
+  business: { priceEnv: "STRIPE_PRICE_BUSINESS", credits: 100 },
+};
+
+export async function POST(request: Request) {
   try {
+    const { plan } = await request.json();
+
+    if (!plan || !PLAN_CONFIG[plan as keyof typeof PLAN_CONFIG]) {
+      return NextResponse.json({ error: "Plan invalide." }, { status: 400 });
+    }
+
     const supabase = await createSupabaseServerClient();
     const { data: userResult, error: userError } = await supabase.auth.getUser();
 
@@ -17,7 +29,8 @@ export async function POST() {
 
     const stripe = getStripe();
     const supabaseAdmin = createSupabaseAdminClient();
-    const priceId = requireEnv("STRIPE_PRICE_PRO_MONTHLY");
+    const config = PLAN_CONFIG[plan as keyof typeof PLAN_CONFIG];
+    const priceId = requireEnv(config.priceEnv);
     const appUrl = getAppUrl();
 
     const { data: profile } = await supabaseAdmin
@@ -26,64 +39,19 @@ export async function POST() {
       .eq("id", userResult.user.id)
       .single();
 
-    const { data: existingSubscription } = await supabaseAdmin
-      .from("subscriptions")
-      .select("stripe_customer_id")
-      .eq("user_id", userResult.user.id)
-      .maybeSingle();
-
-    let customerId = existingSubscription?.stripe_customer_id || null;
-
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: profile?.email || userResult.user.email || undefined,
-        name: profile?.full_name || undefined,
-        metadata: {
-          user_id: userResult.user.id
-        }
-      });
-
-      customerId = customer.id;
-
-      await supabaseAdmin.from("subscriptions").upsert({
-        user_id: userResult.user.id,
-        stripe_customer_id: customerId,
-        status: "inactive",
-        plan: "free"
-      }, { onConflict: "user_id" });
-    }
-
     const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      customer: customerId,
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1
-        }
-      ],
+      mode: "payment",
+      line_items: [{ price: priceId, quantity: 1 }],
       allow_promotion_codes: true,
       client_reference_id: userResult.user.id,
+      customer_email: profile?.email || userResult.user.email || undefined,
       metadata: {
         user_id: userResult.user.id,
-        plan: "pro"
-      },
-      subscription_data: {
-        metadata: {
-          user_id: userResult.user.id,
-          plan: "pro"
-        }
+        plan,
+        credits: config.credits.toString()
       },
       success_url: `${appUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/pricing`
-    });
-
-    await supabaseAdmin.from("usage_events").insert({
-      user_id: userResult.user.id,
-      event_type: "checkout_started",
-      metadata: {
-        stripe_session_id: session.id
-      }
     });
 
     if (!session.url) {

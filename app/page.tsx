@@ -22,8 +22,8 @@ export default function HomePage() {
           </p>
           <div className="grid" style={{ gridTemplateColumns: "1fr", gap: 10 }}>
             <span className="badge">Login sécurisé</span>
-            <span className="badge">Crédits gratuits</span>
-            <span className="badge">Abonnement Pro</span>
+            <span className="badge">Génération IA</span>
+            <span className="badge">Paiement sécurisé</span>
             <span className="badge">Historique projets</span>
           </div>
         </div>
