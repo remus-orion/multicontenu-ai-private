@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 
-export default function PricingCheckoutButton() {
+interface Props {
+  plan: "starter" | "pro" | "business";
+}
+
+export default function PricingCheckoutButton({ plan }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,7 +19,8 @@ export default function PricingCheckoutButton() {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
-        }
+        },
+        body: JSON.stringify({ plan })
       });
 
       const payload = await response.json();
@@ -32,9 +37,9 @@ export default function PricingCheckoutButton() {
   }
 
   return (
-    <div>
-      <button className="btn accent" onClick={handleCheckout} disabled={loading} type="button">
-        {loading ? "Redirection..." : "S'abonner maintenant"}
+    <div style={{ marginTop: 20 }}>
+      <button className="btn accent" onClick={handleCheckout} disabled={loading} type="button" style={{ width: "100%" }}>
+        {loading ? "Redirection..." : "Acheter ce pack"}
       </button>
       {error ? <p className="notice error" style={{ marginTop: 12 }}>{error}</p> : null}
     </div>
